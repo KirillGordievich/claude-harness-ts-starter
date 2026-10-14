@@ -1,0 +1,40 @@
+{
+  "$comment": "Project specifics of the Claude Code hooks. Paths are relative to the project root; `dir/` means everything under it. Globs: `**` crosses directories, a pattern without `/` matches at any depth, `!pattern` re-includes.",
+
+  "secretFiles": [".env", ".env.*", "!.env.example", "secrets/**", "*.pem", "*.key", "*.p12", ".npmrc"],
+
+  "immutableDirs": ["migrations/"],
+  "immutableReason": "an existing migration may already be applied in production: add a new one instead",
+
+  "protectedDirs": ["data/"],
+  "protectedReason": "runtime data, not source code",
+
+  "codePaths": [
+    "src/", "tests/", "migrations/", "scripts/", "plans/", ".claude/",
+    "CLAUDE.md", "Makefile", "package.json", "pnpm-lock.yaml", "tsconfig.json", "eslint.config.mjs", "vitest.config.ts"
+  ],
+
+  "blockedCommands": [
+    { "pattern": "\\bgit\\s+push\\b[^;&|]*(?:--force\\b|\\s-f\\b)", "reason": "Force-pushing rewrites shared history. Ask the user." },
+    { "pattern": "\\bgit\\s+(?:reset\\s+--hard|clean\\s+-[a-z]*f)", "reason": "This discards uncommitted work. Ask the user." },
+    { "pattern": "\\b(?:prisma\\s+migrate\\s+reset|prisma\\s+db\\s+push\\b[^;&|]*--(?:force-reset|accept-data-loss))", "reason": "This wipes the database. Schema changes go through a new migration." },
+    { "pattern": "\\b(?:drizzle-kit\\s+drop|knex\\s+migrate:rollback\\s+--all)", "reason": "This drops migrations or data. Ask the user." }
+  ],
+
+  "askCommands": [
+    { "pattern": "(?:^|[\\s;&|(])(?:psql|mysql|sqlite3)\\b[\\s\\S]*\\b(?:ALTER|UPDATE|INSERT|DELETE|DROP|CREATE|TRUNCATE|GRANT|REVOKE)\\b", "reason": "The command changes a database directly. Schema changes belong in a migration; approve only a deliberate local fix." }
+  ],
+
+  "lint": {
+    "extensions": [".ts", ".tsx", ".js", ".mjs", ".cjs"],
+    "midChangeRules": ["no-unused-vars"]
+  },
+
+  "gate": {
+    "checkCommand": ["make", "-k", "-s", "check"],
+    "maxFixAttempts": 3,
+    "sourceGlobs": ["src/**", "tests/**"],
+    "suppression": "(?:es|ox)lint-disable|@ts-(?:ignore|nocheck|expect-error)|\\bas\\s+any\\b|\\b(?:it|test|describe)\\.(?:skip|only|todo)\\b|\\bx(?:it|test|describe)\\s*\\(",
+    "testCase": "^\\s*(?:it|test)(?:\\.each\\(.*?\\))?\\s*\\("
+  }
+}

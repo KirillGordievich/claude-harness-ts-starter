@@ -1,0 +1,18 @@
+node_modules/
+dist/
+coverage/
+*.log
+.DS_Store
+
+# secrets: only .env.example is committed
+.env
+.env.*
+!.env.example
+secrets/
+
+# runtime data
+data/
+
+# Claude Code: hooks, skills, agents and settings.json are shared; personal settings and stop-gate state are not
+.claude/settings.local.json
+.claude/.gate/
